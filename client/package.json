@@ -1,0 +1,42 @@
+{
+  "name": "verichain-document-verifier",
+  "version": "2.0.0",
+  "description": "Complete VeriChain Document Verification System with upload, hashing, and blockchain storage",
+  "main": "app.js",
+  "scripts": {
+    "start": "live-server --port=3000 --host=localhost --open=/index.html",
+    "dev": "live-server --port=3000 --host=localhost --open=/index.html --watch=.",
+    "serve": "python -m http.server 3000",
+    "serve-php": "php -S localhost:3000",
+    "build": "echo 'No build process needed for static files'"
+  },
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "web3",
+    "document-verification",
+    "pdf-upload",
+    "hash-generation",
+    "smart-contract",
+    "verichain",
+    "truffle"
+  ],
+  "author": "VeriChain Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "live-server": "^1.2.2"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/verichain-document-verifier.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/verichain-document-verifier/issues"
+  },
+  "homepage": "https://github.com/yourusername/verichain-document-verifier#readme"
+}

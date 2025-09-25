@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriChain - Document Verification System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="background-decoration">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+        <div class="floating-shape shape-4"></div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Enhanced Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark modern-nav mb-4">
+            <div class="container">
+                <a class="navbar-brand brand-modern" href="#">
+                    <div class="brand-icon">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-title">VeriChain</span>
+                        <span class="brand-subtitle">Document Verifier</span>
+                    </div>
+                    <span class="version-badge">v2.0</span>
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <div class="nav-item">
+                        <button id="connectWallet" class="btn wallet-btn">
+                            <i class="fas fa-wallet"></i>
+                            <span>Connect Wallet</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Enhanced Connection Status -->
+        <div class="container mb-4">
+            <div id="connectionStatus" class="status-card disconnected" role="alert">
+                <div class="status-icon">
+                    <i class="fas fa-plug"></i>
+                </div>
+                <div class="status-content">
+                    <strong>Connection Status:</strong>
+                    <span id="statusText">Not Connected</span>
+                </div>
+            </div>
+
+            <div id="accountInfo" class="account-card d-none" role="alert">
+                <div class="account-header">
+                    <div class="account-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="account-details">
+                        <div class="account-item">
+                            <span class="label">Account:</span>
+                            <span id="currentAccount" class="value"></span>
+                        </div>
+                        <div class="account-item">
+                            <span class="label">Contract:</span>
+                            <span id="contractAddress" class="value"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="account-footer">
+                    <div class="role-info">
+                        <span class="label">Owner:</span>
+                        <span id="contractOwner" class="value"></span>
+                    </div>
+                    <div class="role-badge-container">
+                        <span class="label">Role:</span>
+                        <span id="userRole" class="role-badge unknown">Unknown</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Statistics Dashboard -->
+        <div class="container mb-5">
+            <div class="stats-container">
+                <h2 class="stats-title">
+                    <i class="fas fa-chart-line"></i>
+                    Contract Statistics
+                </h2>
+                <div class="stats-grid">
+                    <div class="stat-card exporters">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="exporterCount">0</div>
+                            <div class="stat-label">Total Exporters</div>
+                        </div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card documents">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="hashCount">0</div>
+                            <div class="stat-label">Total Documents</div>
+                        </div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card owner">
+                        <div class="stat-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number small-text" id="ownerAddress">Loading...</div>
+                            <div class="stat-label">Contract Owner</div>
+                        </div>
+                        <div class="stat-trend">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card status">
+                        <div class="stat-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="contractStatus">Active</div>
+                            <div class="stat-label">Network Status</div>
+                        </div>
+                        <div class="stat-trend">
+                            <i class="fas fa-signal"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-footer">
+                    <button id="refreshStats" class="refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Statistics
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Tabbed Interface -->
+        <div class="container">
+            <div class="modern-tabs">
+                <div class="tabs-header">
+                    <ul class="nav nav-pills modern-nav-pills" id="mainTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="upload-tab" data-bs-toggle="pill" data-bs-target="#upload" type="button" role="tab">
+                                <div class="tab-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="tab-content">
+                                    <span class="tab-title">Upload</span>
+                                    <span class="tab-subtitle">Store Documents</span>
+                                </div>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="verify-tab" data-bs-toggle="pill" data-bs-target="#verify" type="button" role="tab">
+                                <div class="tab-icon">
+                                    <i class="fas fa-shield-check"></i>
+                                </div>
+                                <div class="tab-content">
+                                    <span class="tab-title">Verify</span>
+                                    <span class="tab-subtitle">Check Authenticity</span>
+                                </div>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="manage-tab" data-bs-toggle="pill" data-bs-target="#manage" type="button" role="tab">
+                                <div class="tab-icon">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <div class="tab-content">
+                                    <span class="tab-title">Manage</span>
+                                    <span class="tab-subtitle">System Control</span>
+                                </div>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="query-tab" data-bs-toggle="pill" data-bs-target="#query" type="button" role="tab">
+                                <div class="tab-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="tab-content">
+                                    <span class="tab-title">Query</span>
+                                    <span class="tab-subtitle">Search Data</span>
+                                </div>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="tab-content modern-tab-content" id="mainTabContent">
+                    <!-- Enhanced Upload Tab -->
+                    <div class="tab-pane fade show active" id="upload" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-lg-8">
+                                <div class="modern-card upload-card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-file-upload"></i>
+                                            Document Upload & Storage
+                                        </h3>
+                                        <p class="card-subtitle">Upload documents and store their hash on blockchain</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Enhanced File Upload Section -->
+                                        <div class="upload-step step-1">
+                                            <div class="step-header">
+                                                <div class="step-number">1</div>
+                                                <h4>Select Document</h4>
+                                            </div>
+                                            <div class="modern-upload-area" id="fileUploadArea">
+                                                <div class="upload-content">
+                                                    <div class="upload-icon">
+                                                        <i class="fas fa-cloud-upload-alt"></i>
+                                                    </div>
+                                                    <h4>Drop your file here</h4>
+                                                    <p>or click to browse your computer</p>
+                                                    <div class="supported-formats">
+                                                        <span class="format">PDF</span>
+                                                        <span class="format">DOC</span>
+                                                        <span class="format">DOCX</span>
+                                                        <span class="format">TXT</span>
+                                                    </div>
+                                                    <input type="file" id="documentFile" accept=".pdf,.doc,.docx,.txt" hidden>
+                                                </div>
+                                            </div>
+                                            <button id="browseFile" class="modern-btn secondary">
+                                                <i class="fas fa-folder-open"></i>
+                                                Browse Files
+                                            </button>
+                                        </div>
+
+                                        <!-- Enhanced File Info Display -->
+                                        <div id="fileInfo" class="upload-step step-2 d-none">
+                                            <div class="step-header">
+                                                <div class="step-number completed">✓</div>
+                                                <h4>File Information</h4>
+                                            </div>
+                                            <div class="file-details">
+                                                <div class="file-icon">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </div>
+                                                <div class="file-info-grid">
+                                                    <div class="info-item">
+                                                        <span class="label">Name:</span>
+                                                        <span id="fileName" class="value"></span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <span class="label">Size:</span>
+                                                        <span id="fileSize" class="value"></span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <span class="label">Type:</span>
+                                                        <span id="fileType" class="value"></span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <span class="label">Modified:</span>
+                                                        <span id="fileModified" class="value"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Enhanced Hash Generation Section -->
+                                        <div id="hashSection" class="upload-step step-3 d-none">
+                                            <div class="step-header">
+                                                <div class="step-number">2</div>
+                                                <h4>Generate Hash</h4>
+                                            </div>
+                                            <button id="generateHash" class="modern-btn primary">
+                                                <i class="fas fa-fingerprint"></i>
+                                                Generate SHA-256 Hash
+                                            </button>
+                                            <div id="hashResult" class="hash-display d-none">
+                                                <div class="hash-container">
+                                                    <div class="hash-label">Document Hash:</div>
+                                                    <div class="hash-value">
+                                                        <span id="documentHashDisplay" class="hash-text"></span>
+                                                        <button id="copyHash" class="copy-btn">
+                                                            <i class="fas fa-copy"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Enhanced Blockchain Storage Section -->
+                                        <div id="storeSection" class="upload-step step-4 d-none">
+                                            <div class="step-header">
+                                                <div class="step-number">3</div>
+                                                <h4>Store on Blockchain</h4>
+                                            </div>
+                                            <div class="ipfs-input">
+                                                <label for="ipfsHash" class="form-label">
+                                                    <i class="fas fa-link"></i>
+                                                    IPFS Hash (Optional)
+                                                </label>
+                                                <input type="text" id="ipfsHash" class="form-control modern-input" 
+                                                       placeholder="Qm... (Leave empty for document hash only)">
+                                                <div class="input-help">Enter IPFS hash if document is stored on IPFS</div>
+                                            </div>
+                                            <button id="storeOnBlockchain" class="modern-btn success large">
+                                                <i class="fas fa-database"></i>
+                                                Store Hash on Blockchain
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Progress Panel -->
+                            <div class="col-lg-4">
+                                <div class="modern-card progress-card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-tasks"></i>
+                                            Upload Progress
+                                        </h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="progress-timeline">
+                                            <div class="progress-item" id="step1">
+                                                <div class="progress-icon">
+                                                    <i class="fas fa-file"></i>
+                                                </div>
+                                                <div class="progress-content">
+                                                    <div class="progress-title">Select Document</div>
+                                                    <div class="progress-status">Pending</div>
+                                                </div>
+                                            </div>
+                                            <div class="progress-item" id="step2">
+                                                <div class="progress-icon">
+                                                    <i class="fas fa-fingerprint"></i>
+                                                </div>
+                                                <div class="progress-content">
+                                                    <div class="progress-title">Generate Hash</div>
+                                                    <div class="progress-status">Pending</div>
+                                                </div>
+                                            </div>
+                                            <div class="progress-item" id="step3">
+                                                <div class="progress-icon">
+                                                    <i class="fas fa-database"></i>
+                                                </div>
+                                                <div class="progress-content">
+                                                    <div class="progress-title">Store on Blockchain</div>
+                                                    <div class="progress-status">Pending</div>
+                                                </div>
+                                            </div>
+                                            <div class="progress-item" id="step4">
+                                                <div class="progress-icon">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                                <div class="progress-content">
+                                                    <div class="progress-title">Transaction Complete</div>
+                                                    <div class="progress-status">Pending</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Verify Tab -->
+                    <div class="tab-pane fade" id="verify" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-lg-8">
+                                <div class="modern-card verify-card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-shield-check"></i>
+                                            Document Verification
+                                        </h3>
+                                        <p class="card-subtitle">Verify document authenticity against blockchain</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Enhanced Method Selection -->
+                                        <div class="verification-methods">
+                                            <h4 class="section-title">Verification Method</h4>
+                                            <div class="method-selector">
+                                                <input type="radio" class="btn-check" name="verifyMethod" id="verifyByFile" checked>
+                                                <label class="method-option" for="verifyByFile">
+                                                    <div class="method-icon">
+                                                        <i class="fas fa-file-upload"></i>
+                                                    </div>
+                                                    <div class="method-content">
+                                                        <span class="method-title">Upload File</span>
+                                                        <span class="method-desc">Drop file to verify</span>
+                                                    </div>
+                                                </label>
+
+                                                <input type="radio" class="btn-check" name="verifyMethod" id="verifyByHash">
+                                                <label class="method-option" for="verifyByHash">
+                                                    <div class="method-icon">
+                                                        <i class="fas fa-fingerprint"></i>
+                                                    </div>
+                                                    <div class="method-content">
+                                                        <span class="method-title">Enter Hash</span>
+                                                        <span class="method-desc">Provide document hash</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Enhanced File Upload Verification -->
+                                        <div id="verifyByFileSection" class="verification-section">
+                                            <div class="modern-upload-area verify-area" id="verifyUploadArea">
+                                                <div class="upload-content">
+                                                    <div class="upload-icon verify-icon">
+                                                        <i class="fas fa-shield-check"></i>
+                                                    </div>
+                                                    <h4>Drop file to verify</h4>
+                                                    <p>We'll check if this document exists on blockchain</p>
+                                                    <input type="file" id="verifyFile" accept=".pdf,.doc,.docx,.txt" hidden>
+                                                </div>
+                                            </div>
+                                            <button id="browseVerifyFile" class="modern-btn secondary">
+                                                <i class="fas fa-folder-open"></i>
+                                                Browse File to Verify
+                                            </button>
+                                        </div>
+
+                                        <!-- Enhanced Hash Input Verification -->
+                                        <div id="verifyByHashSection" class="verification-section d-none">
+                                            <div class="hash-input-container">
+                                                <label for="verifyHashInput" class="form-label">
+                                                    <i class="fas fa-fingerprint"></i>
+                                                    Document Hash
+                                                </label>
+                                                <input type="text" id="verifyHashInput" class="form-control modern-input hash-input" 
+                                                       placeholder="Enter 64-character SHA-256 hash">
+                                                <div class="input-help">Enter the document hash to verify against blockchain</div>
+                                            </div>
+                                            <button id="verifyByHashBtn" class="modern-btn primary">
+                                                <i class="fas fa-search"></i>
+                                                Verify Hash on Blockchain
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Verification Result Panel -->
+                            <div class="col-lg-4">
+                                <div class="modern-card result-card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-clipboard-check"></i>
+                                            Verification Result
+                                        </h3>
+                                    </div>
+                                    <div class="card-body" id="verificationResult">
+                                        <div class="result-placeholder">
+                                            <div class="placeholder-icon">
+                                                <i class="fas fa-search-plus"></i>
+                                            </div>
+                                            <h4>Ready to Verify</h4>
+                                            <p>Upload a file or enter hash to verify authenticity</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Management Tab -->
+                    <div class="tab-pane fade" id="manage" role="tabpanel">
+                        <div class="row g-4">
+                            <!-- Enhanced Owner Functions -->
+                            <div class="col-lg-6">
+                                <div class="modern-card management-card">
+                                    <div class="card-header danger">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-crown"></i>
+                                            Owner Functions
+                                        </h3>
+                                        <p class="card-subtitle">Administrative control for contract owner</p>
+                                    </div>
+                                    <div class="card-body" id="ownerFunctions">
+                                        <!-- Add Exporter -->
+                                        <div class="function-section">
+                                            <div class="function-header">
+                                                <i class="fas fa-user-plus"></i>
+                                                <h4>Add Exporter</h4>
+                                            </div>
+                                            <div class="input-group-modern">
+                                                <input type="text" id="newExporterAddress" class="form-control modern-input" 
+                                                       placeholder="0x... Exporter Address">
+                                                <input type="text" id="newExporterInfo" class="form-control modern-input" 
+                                                       placeholder="Company/Organization Name">
+                                            </div>
+                                            <button id="addExporter" class="modern-btn success">
+                                                <i class="fas fa-plus"></i>
+                                                Add Authorized Exporter
+                                            </button>
+                                        </div>
+
+                                        <!-- Modify Exporter -->
+                                        <div class="function-section">
+                                            <div class="function-header">
+                                                <i class="fas fa-user-edit"></i>
+                                                <h4>Modify Exporter</h4>
+                                            </div>
+                                            <div class="input-group-modern">
+                                                <input type="text" id="modifyExporterAddress" class="form-control modern-input" 
+                                                       placeholder="Exporter Address">
+                                                <input type="text" id="modifyExporterInfo" class="form-control modern-input" 
+                                                       placeholder="New Information">
+                                            </div>
+                                            <button id="alterExporter" class="modern-btn warning">
+                                                <i class="fas fa-edit"></i>
+                                                Update Exporter Info
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Exporter -->
+                                        <div class="function-section">
+                                            <div class="function-header">
+                                                <i class="fas fa-user-minus"></i>
+                                                <h4>Remove Exporter</h4>
+                                            </div>
+                                            <div class="input-group-modern">
+                                                <input type="text" id="deleteExporterAddress" class="form-control modern-input" 
+                                                       placeholder="Exporter Address to Remove">
+                                            </div>
+                                            <button id="deleteExporter" class="modern-btn danger">
+                                                <i class="fas fa-trash"></i>
+                                                Remove Authorization
+                                            </button>
+                                        </div>
+
+                                        <!-- Transfer Ownership -->
+                                        <div class="function-section">
+                                            <div class="function-header">
+                                                <i class="fas fa-exchange-alt"></i>
+                                                <h4>Transfer Ownership</h4>
+                                            </div>
+                                            <div class="input-group-modern">
+                                                <input type="text" id="newOwnerAddress" class="form-control modern-input" 
+                                                       placeholder="New Owner Address">
+                                            </div>
+                                            <button id="changeOwner" class="modern-btn primary">
+                                                <i class="fas fa-crown"></i>
+                                                Transfer Contract Ownership
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Document Management -->
+                            <div class="col-lg-6">
+                                <div class="modern-card management-card">
+                                    <div class="card-header info">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-file-contract"></i>
+                                            Document Management
+                                        </h3>
+                                        <p class="card-subtitle">For authorized exporters and administrators</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Manual Hash Addition -->
+                                        <div class="function-section">
+                                            <div class="function-header">
+                                                <i class="fas fa-plus-circle"></i>
+                                                <h4>Add Document Hash</h4>
+                                            </div>
+                                            <div class="input-group-modern">
+                                                <input type="text" id="manualDocHash" class="form-control modern-input hash-input" 
+                                                       placeholder="Document Hash (64 characters)">
+                                                <input type="text" id="manualIpfsHash" class="form-control modern-input" 
+                                                       placeholder="IPFS Hash (optional)">
+                                            </div>
+                                            <button id="addManualDocHash" class="modern-btn success">
+                                                <i class="fas fa-database"></i>
+                                                Store on Blockchain
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Document -->
+                                        <div class="function-section">
+                                            <div class="function-header">
+                                                <i class="fas fa-trash-alt"></i>
+                                                <h4>Delete Document</h4>
+                                            </div>
+                                            <div class="input-group-modern">
+                                                <input type="text" id="deleteDocHash" class="form-control modern-input hash-input" 
+                                                       placeholder="Document Hash to Delete">
+                                            </div>
+                                            <button id="deleteDocumentHash" class="modern-btn danger">
+                                                <i class="fas fa-trash"></i>
+                                                Remove from Blockchain
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Query Tab -->
+                    <div class="tab-pane fade" id="query" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-lg-8">
+                                <div class="modern-card query-card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-database"></i>
+                                            Blockchain Query Functions
+                                        </h3>
+                                        <p class="card-subtitle">Search and retrieve data from the blockchain</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Query Document -->
+                                        <div class="query-section">
+                                            <div class="query-header">
+                                                <i class="fas fa-search"></i>
+                                                <h4>Find Document Details</h4>
+                                            </div>
+                                            <div class="query-input-group">
+                                                <input type="text" id="findDocHashInput" class="form-control modern-input hash-input" 
+                                                       placeholder="Enter document hash to find">
+                                                <button id="findDocHash" class="modern-btn primary">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                            </div>
+                                            <div id="docQueryResult" class="query-result d-none"></div>
+                                        </div>
+
+                                        <!-- Query Exporter -->
+                                        <div class="query-section">
+                                            <div class="query-header">
+                                                <i class="fas fa-user-check"></i>
+                                                <h4>Check Exporter Status</h4>
+                                            </div>
+                                            <div class="query-input-group">
+                                                <input type="text" id="checkExporterAddress" class="form-control modern-input" 
+                                                       placeholder="Enter exporter address">
+                                                <button id="checkExporter" class="modern-btn info">
+                                                    <i class="fas fa-user-check"></i>
+                                                </button>
+                                            </div>
+                                            <div id="exporterQueryResult" class="query-result d-none"></div>
+                                        </div>
+
+                                        <!-- Document Exists Check -->
+                                        <div class="query-section">
+                                            <div class="query-header">
+                                                <i class="fas fa-question-circle"></i>
+                                                <h4>Document Existence Check</h4>
+                                            </div>
+                                            <div class="query-input-group">
+                                                <input type="text" id="checkDocExists" class="form-control modern-input hash-input" 
+                                                       placeholder="Enter document hash to check existence">
+                                                <button id="checkDocumentExists" class="modern-btn secondary">
+                                                    <i class="fas fa-question"></i>
+                                                </button>
+                                            </div>
+                                            <div id="existsQueryResult" class="query-result d-none"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Quick Functions Panel -->
+                            <div class="col-lg-4">
+                                <div class="modern-card quick-functions-card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-tachometer-alt"></i>
+                                            Quick Functions
+                                        </h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="quick-actions">
+                                            <button id="getStatsBtn" class="quick-action-btn">
+                                                <div class="action-icon">
+                                                    <i class="fas fa-chart-line"></i>
+                                                </div>
+                                                <div class="action-content">
+                                                    <span class="action-title">Statistics</span>
+                                                    <span class="action-desc">Get contract stats</span>
+                                                </div>
+                                            </button>
+
+                                            <button id="getOwnerBtn" class="quick-action-btn">
+                                                <div class="action-icon">
+                                                    <i class="fas fa-crown"></i>
+                                                </div>
+                                                <div class="action-content">
+                                                    <span class="action-title">Owner</span>
+                                                    <span class="action-desc">Get contract owner</span>
+                                                </div>
+                                            </button>
+
+                                            <button id="countExportersBtn" class="quick-action-btn">
+                                                <div class="action-icon">
+                                                    <i class="fas fa-users"></i>
+                                                </div>
+                                                <div class="action-content">
+                                                    <span class="action-title">Exporters</span>
+                                                    <span class="action-desc">Count authorized users</span>
+                                                </div>
+                                            </button>
+
+                                            <button id="countHashesBtn" class="quick-action-btn">
+                                                <div class="action-icon">
+                                                    <i class="fas fa-file-alt"></i>
+                                                </div>
+                                                <div class="action-content">
+                                                    <span class="action-title">Documents</span>
+                                                    <span class="action-desc">Count stored docs</span>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        <div id="quickStatsResult" class="quick-result">
+                                            <div class="result-placeholder">
+                                                <i class="fas fa-info-circle"></i>
+                                                <p>Click buttons above to get contract information</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Event Log -->
+        <div class="container mt-5">
+            <div class="modern-card log-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h3 class="card-title">
+                            <i class="fas fa-history"></i>
+                            Transaction Log
+                        </h3>
+                        <p class="card-subtitle">Real-time activity and transaction history</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="clearLog" class="action-btn">
+                            <i class="fas fa-eraser"></i>
+                            Clear
+                        </button>
+                        <button id="exportLog" class="action-btn primary">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="transactionLog" class="transaction-log">
+                        <div class="log-placeholder">
+                            <div class="placeholder-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <h4>No Activity Yet</h4>
+                            <p>Connect wallet and start using the system to see transaction logs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Modals -->
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modern-modal">
+                <div class="modal-body">
+                    <div class="loading-content">
+                        <div class="loading-spinner">
+                            <div class="spinner-ring">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+                        <h4 id="loadingTitle">Processing Transaction</h4>
+                        <p id="loadingMessage">Please confirm in MetaMask and wait for confirmation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modern-modal">
+                <div class="modal-header success-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle"></i>
+                        Transaction Successful
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="successContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="modern-btn success" data-bs-dismiss="modal">
+                        <i class="fas fa-check"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
