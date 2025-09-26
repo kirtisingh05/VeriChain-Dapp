@@ -4,7 +4,7 @@ pragma solidity ^0.5.1;
 /**
  * @title VeriChain
  * @dev Document verification system with exporter management
- * @author VeriChain Team
+ * @author Kirti Singh
  */
 contract VeriChain {
 
